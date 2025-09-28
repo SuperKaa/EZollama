@@ -21,7 +21,8 @@ Supports model selection, chatting, persistent system prompts, listing models, d
 ### Import
 
 ```python
-from ezollama import ez
+from ezollama import EzOllama
+ez = EzOllama()
 ```
 
 ### Set Model
@@ -73,7 +74,9 @@ ez.text_to_speech("Hello, this is Ollama speaking.")
 ## Example
 
 ```python
-from ezollama import ez
+from ezollama import EzOllama
+
+ez = EzOllama()
 
 ez.setmodel("llama3.2:3b")
 ez.set_system_prompt("You are a friendly assistant.")
