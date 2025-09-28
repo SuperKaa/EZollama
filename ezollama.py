@@ -10,38 +10,13 @@ except ImportError:
     subprocess.check_call([sys.executable, "-m", "pip", "install", "pyttsx3"])
     import pyttsx3
 
-def check_ollama():
-    if shutil.which("ollama") is None:
-        print("Ollama CLI is not installed.")
-        choice = input("Do you want to install the Ollama CLI? (y/n): ").strip().lower()
-        if choice == "y":
-            print("Installing Ollama CLI...")
-            if sys.platform == "win32":
-                import urllib.request
-                installer_url = "https://ollama.com/download/OllamaSetup.exe"
-                installer_path = os.path.join(os.getenv("TEMP"), "OllamaSetup.exe")
-                print("Downloading Ollama CLI installer...")
-                urllib.request.urlretrieve(installer_url, installer_path)
-                print("Running installer...")
-                subprocess.check_call([installer_path, "/SILENT"])
-                print("Ollama CLI installed. Please ensure Ollama is running.")
-            elif sys.platform == "darwin":
-                subprocess.check_call(["brew", "install", "ollama"])
-                print("Ollama CLI installed. Please ensure Ollama is running.")
-            else:
-                subprocess.check_call("curl -fsSL https://ollama.com/install.sh | sh", shell=True)
-                print("Ollama CLI installed. Please ensure Ollama is running.")
-        else:
-            print("Ollama CLI is required to use this library.")
-            sys.exit(1)
-
 def start_ollama_quietly():
+    if shutil.which("ollama") is None:
+        print("[ezollama] Warning: Ollama CLI not found in PATH. Please install Ollama from https://ollama.com/download.")
     if sys.platform == "win32":
         os.system("ollama list >nul 2>&1")
     else:
         os.system("ollama list >/dev/null 2>&1")
-
-check_ollama()
 
 class EzOllama:
     def __init__(self, api_url="http://localhost:11434"):
@@ -62,7 +37,7 @@ class EzOllama:
     def chat(self, message, stream=False):
         start_ollama_quietly()
         if not self.model:
-            raise ValueError("Model not set. Use setmodel('modelname') first.")
+            raise ValueError("Model not set. Use set_model('modelname') first.")
 
         messages = []
         if self.system_prompt:
