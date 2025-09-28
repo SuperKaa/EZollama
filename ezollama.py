@@ -11,8 +11,6 @@ except ImportError:
     import pyttsx3
 
 def start_ollama_quietly():
-    if shutil.which("ollama") is None:
-        print("[ezollama] Warning: Ollama CLI not found in PATH. Please install Ollama from https://ollama.com/download.")
     if sys.platform == "win32":
         os.system("ollama list >nul 2>&1")
     else:
@@ -86,14 +84,13 @@ class EzOllama:
 
     def pull_model(self, modelname):
         start_ollama_quietly()
-        resp = requests.get(f"{self.api_url}/api/tags")
-        resp.raise_for_status()
-        models = [m["name"] for m in resp.json().get("models", [])]
-        if modelname not in models:
+        if sys.platform == "win32":
+            exit_code = os.system(f"ollama pull {modelname}")
+        else:
+            exit_code = os.system(f"ollama pull {modelname}")
+        if exit_code != 0:
             print(f"{modelname} not found!")
-            return
-        pull_resp = requests.post(f"{self.api_url}/api/pull", json={"name": modelname})
-        pull_resp.raise_for_status()
-        print(f"Pulled model: {modelname}")
+        else:
+            print(f"Pulled model: {modelname}")
 
 ez = EzOllama()
