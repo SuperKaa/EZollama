@@ -1,11 +1,7 @@
 # EZollama
 
-<h3>
-  <a href="https://pypi.org/project/ezollama/">PYPI project</a>
-  <span> · </span>
-</h3>
+[![Python Version](https://img.shields.io/badge/python-3.10+-blue)](https://www.python.org/)
 
-[![PYPI](https://avatars.githubusercontent.com/u/2964877?s=280&v=4)](https://pypi.org/project/ezollama)
 
 A simple Python library for interacting with [Ollama](https://ollama.com/) models via their local API.  
 Supports model selection, chatting, persistent system prompts, listing models, downloading models, resetting chat history, and text-to-speech.
