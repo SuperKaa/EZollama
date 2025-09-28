@@ -5,6 +5,8 @@
   <span> · </span>
 </h3>
 
+[![PYPI](https://avatars.githubusercontent.com/u/2964877?s=280&v=4)](https://pypi.org/project/ezollama)
+
 A simple Python library for interacting with [Ollama](https://ollama.com/) models via their local API.  
 Supports model selection, chatting, persistent system prompts, listing models, downloading models, resetting chat history, and text-to-speech.
 
