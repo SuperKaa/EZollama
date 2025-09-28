@@ -3,7 +3,6 @@
 [![Python](https://img.shields.io/badge/python-3.10+-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/ezollama.svg)](https://pypi.org/project/ezollama/)
-[![Build](https://img.shields.io/github/actions/workflow/status/SuperKaa/ezollama/python-publish.yml?branch=main)](https://github.com/SuperKaa/ezollama/actions)
 
 
 A simple Python library for interacting with [Ollama](https://ollama.com/) models via their local API.  
@@ -17,8 +16,8 @@ Supports model selection, chatting, persistent system prompts, listing models, d
    Download and install Ollama from [https://ollama.com/download](https://ollama.com/download).  
    The library will prompt to install Ollama if not found.
 
-2. **Python dependencies:**  
-   The library auto-installs `pyttsx3` for text-to-speech if missing.
+2. **Install EZollama:**  
+   Use command pip install ezollama
 
 ---
 
