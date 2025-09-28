@@ -93,6 +93,5 @@ while True:
 ## Notes
 
 - The library checks and quietly starts the Ollama server before each API call.
-- If Ollama is not installed, you will be prompted to install it.
 - If the model does not exist, `pull_model` will print a message.
 - Text-to-speech uses `pyttsx3` and works cross-platform.
