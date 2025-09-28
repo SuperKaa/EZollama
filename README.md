@@ -1,4 +1,4 @@
-# ezollama
+# EZollama
 
 A simple Python library for interacting with [Ollama](https://ollama.com/) models via their local API.  
 Supports model selection, chatting, persistent system prompts, listing models, downloading models, resetting chat history, and text-to-speech.
@@ -73,7 +73,7 @@ ez.text_to_speech("Hello, this is Ollama speaking.")
 ## Example
 
 ```python
-from main import ez
+from ezollama import ez
 
 ez.setmodel("llama3.2:3b")
 ez.set_system_prompt("You are a friendly assistant.")
