@@ -12,19 +12,27 @@ except ImportError:
 
 def check_ollama():
     if shutil.which("ollama") is None:
-        print("Ollama is not installed.")
-        choice = input("Do you want to install Ollama? (y/n): ").strip().lower()
+        print("Ollama CLI is not installed.")
+        choice = input("Do you want to install the Ollama CLI? (y/n): ").strip().lower()
         if choice == "y":
-            print("Installing Ollama...")
+            print("Installing Ollama CLI...")
             if sys.platform == "win32":
-                subprocess.check_call(["winget", "install", "--id", "Ollama.Ollama", "-e"])
+                import urllib.request
+                installer_url = "https://ollama.com/download/OllamaSetup.exe"
+                installer_path = os.path.join(os.getenv("TEMP"), "OllamaSetup.exe")
+                print("Downloading Ollama CLI installer...")
+                urllib.request.urlretrieve(installer_url, installer_path)
+                print("Running installer...")
+                subprocess.check_call([installer_path, "/SILENT"])
+                print("Ollama CLI installed. Please ensure Ollama is running.")
             elif sys.platform == "darwin":
                 subprocess.check_call(["brew", "install", "ollama"])
+                print("Ollama CLI installed. Please ensure Ollama is running.")
             else:
-                subprocess.check_call(["curl", "-fsSL", "https://ollama.com/install.sh", "|", "sh"])
-            print("Ollama installed. Please ensure Ollama is running.")
+                subprocess.check_call("curl -fsSL https://ollama.com/install.sh | sh", shell=True)
+                print("Ollama CLI installed. Please ensure Ollama is running.")
         else:
-            print("Ollama is required to use this library.")
+            print("Ollama CLI is required to use this library.")
             sys.exit(1)
 
 def start_ollama_quietly():
