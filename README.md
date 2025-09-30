@@ -33,7 +33,7 @@ ez = EzOllama()
 ### Set Model
 
 ```python
-ez.setmodel("llama2")
+ez.set_model("llama2")
 ```
 
 ### Set Persistent System Prompt
