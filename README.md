@@ -32,7 +32,7 @@ ez = EzOllama()
 ### Set Model
 
 ```python
-ez.setmodel("llama2")
+ez.set_model("llama2")
 ```
 
 ### Set Persistent System Prompt
@@ -111,7 +111,7 @@ from ezollama import EzOllama
 
 ez = EzOllama()
 
-ez.setmodel("llama3.2:3b")
+ez.set_model("llama3.2:3b")
 ez.set_system_prompt("You are a friendly assistant.")
 
 while True:
