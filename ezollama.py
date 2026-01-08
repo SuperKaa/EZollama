@@ -3,6 +3,7 @@ import subprocess
 import sys
 import shutil
 import os
+import json
 
 try:
     import pyttsx3
@@ -73,16 +74,15 @@ class EzOllama:
         
         # Add system instruction if set
         if self.system_prompt:
-            payload["systemInstruction"] = {"parts": [{"text": self.system_prompt}]}
         
-        resp = requests.post(url, json=payload)
-        resp.raise_for_status()
-        data = resp.json()
-        
-        content = data["candidates"][0]["content"]["parts"][0]["text"]
-        self.history.append({"role": "user", "content": message})
-        self.history.append({"role": "assistant", "content": content})
-        return content
+            resp = requests.post(url, json=payload)
+            resp.raise_for_status()
+            data = resp.json()
+            
+            content = data["candidates"][0]["content"]["parts"][0]["text"]
+            self.history.append({"role": "user", "content": message})
+            self.history.append({"role": "assistant", "content": content})
+            return content
 
     def _chat_openai(self, message):
         """Handle OpenAI API calls"""
@@ -192,8 +192,11 @@ class EzOllama:
                 response_text = ""
                 for line in resp.iter_lines():
                     if line:
-                        data = line.decode("utf-8")
-                        response_text += data
+                        try:
+                            data = json.loads(line.decode("utf-8"))
+                            response_text += data.get("message", {}).get("content", "")
+                        except json.JSONDecodeError:
+                            pass
                 self.history.append({"role": "user", "content": message})
                 self.history.append({"role": "assistant", "content": response_text})
                 return response_text
