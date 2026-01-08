@@ -60,7 +60,7 @@ class EzOllama:
 
     def _chat_google(self, message):
         """Handle Google AI Studio (Gemini) API calls"""
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent?key={self.api_key}"
+        url = f"https://generativelanguage.googleapis.com/v1/models/{self.model}:generateContent?key={self.api_key}"
         
         # Build contents array
         contents = []
@@ -73,7 +73,7 @@ class EzOllama:
         
         # Add system instruction if set
         if self.system_prompt:
-            payload["system_instruction"] = {"parts": [{"text": self.system_prompt}]}
+            payload["systemInstruction"] = {"parts": [{"text": self.system_prompt}]}
         
         resp = requests.post(url, json=payload)
         resp.raise_for_status()
