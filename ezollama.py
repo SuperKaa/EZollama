@@ -74,15 +74,16 @@ class EzOllama:
         
         # Add system instruction if set
         if self.system_prompt:
+            payload["system_instruction"] = {"parts": [{"text": self.system_prompt}]}
         
-            resp = requests.post(url, json=payload)
-            resp.raise_for_status()
-            data = resp.json()
-            
-            content = data["candidates"][0]["content"]["parts"][0]["text"]
-            self.history.append({"role": "user", "content": message})
-            self.history.append({"role": "assistant", "content": content})
-            return content
+        resp = requests.post(url, json=payload)
+        resp.raise_for_status()
+        data = resp.json()
+        
+        content = data["candidates"][0]["content"]["parts"][0]["text"]
+        self.history.append({"role": "user", "content": message})
+        self.history.append({"role": "assistant", "content": content})
+        return content
 
     def _chat_openai(self, message):
         """Handle OpenAI API calls"""
