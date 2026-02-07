@@ -59,15 +59,22 @@ class EzOllama:
             start_ollama_quietly()
         self.system_prompt = prompt
 
+    def set_history(self, history):
+        self.history = history
+
+    def get_history(self):
+        return self.history
+
     def _chat_google(self, message):
         """Handle Google AI Studio (Gemini) API calls"""
-        url = f"https://generativelanguage.googleapis.com/v1/models/{self.model}:generateContent?key={self.api_key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent?key={self.api_key}"
         
         # Build contents array
         contents = []
-        for msg in self.history:
-            role = "user" if msg["role"] == "user" else "model"
-            contents.append({"role": role, "parts": [{"text": msg["content"]}]})
+        for turn in self.history:
+            contents.append({"role": "user", "parts": [{"text": turn["user"]}]})
+            if "ai" in turn:
+                contents.append({"role": "model", "parts": [{"text": turn["ai"]}]})
         contents.append({"role": "user", "parts": [{"text": message}]})
         
         payload = {"contents": contents}
@@ -81,8 +88,7 @@ class EzOllama:
         data = resp.json()
         
         content = data["candidates"][0]["content"]["parts"][0]["text"]
-        self.history.append({"role": "user", "content": message})
-        self.history.append({"role": "assistant", "content": content})
+        self.history.append({"user": message, "ai": content})
         return content
 
     def _chat_openai(self, message):
@@ -96,7 +102,10 @@ class EzOllama:
         messages = []
         if self.system_prompt:
             messages.append({"role": "system", "content": self.system_prompt})
-        messages += self.history
+        for turn in self.history:
+            messages.append({"role": "user", "content": turn["user"]})
+            if "ai" in turn:
+                messages.append({"role": "assistant", "content": turn["ai"]})
         messages.append({"role": "user", "content": message})
         
         payload = {
@@ -109,8 +118,7 @@ class EzOllama:
         data = resp.json()
         
         content = data["choices"][0]["message"]["content"]
-        self.history.append({"role": "user", "content": message})
-        self.history.append({"role": "assistant", "content": content})
+        self.history.append({"user": message, "ai": content})
         return content
 
     def _chat_anthropic(self, message):
@@ -122,7 +130,11 @@ class EzOllama:
             "Content-Type": "application/json"
         }
         
-        messages = self.history.copy()
+        messages = []
+        for turn in self.history:
+            messages.append({"role": "user", "content": turn["user"]})
+            if "ai" in turn:
+                messages.append({"role": "assistant", "content": turn["ai"]})
         messages.append({"role": "user", "content": message})
         
         payload = {
@@ -139,8 +151,7 @@ class EzOllama:
         data = resp.json()
         
         content = data["content"][0]["text"]
-        self.history.append({"role": "user", "content": message})
-        self.history.append({"role": "assistant", "content": content})
+        self.history.append({"user": message, "ai": content})
         return content
 
     def _chat_groq(self, message):
@@ -154,7 +165,10 @@ class EzOllama:
         messages = []
         if self.system_prompt:
             messages.append({"role": "system", "content": self.system_prompt})
-        messages += self.history
+        for turn in self.history:
+            messages.append({"role": "user", "content": turn["user"]})
+            if "ai" in turn:
+                messages.append({"role": "assistant", "content": turn["ai"]})
         messages.append({"role": "user", "content": message})
         
         payload = {
@@ -167,8 +181,7 @@ class EzOllama:
         data = resp.json()
         
         content = data["choices"][0]["message"]["content"]
-        self.history.append({"role": "user", "content": message})
-        self.history.append({"role": "assistant", "content": content})
+        self.history.append({"user": message, "ai": content})
         return content
 
     def chat(self, message, stream=False):
@@ -180,7 +193,10 @@ class EzOllama:
             messages = []
             if self.system_prompt:
                 messages.append({"role": "system", "content": self.system_prompt})
-            messages += self.history
+            for turn in self.history:
+                messages.append({"role": "user", "content": turn["user"]})
+                if "ai" in turn:
+                    messages.append({"role": "assistant", "content": turn["ai"]})
             messages.append({"role": "user", "content": message})
 
             payload = {
@@ -198,15 +214,13 @@ class EzOllama:
                             response_text += data.get("message", {}).get("content", "")
                         except json.JSONDecodeError:
                             pass
-                self.history.append({"role": "user", "content": message})
-                self.history.append({"role": "assistant", "content": response_text})
+                self.history.append({"user": message, "ai": response_text})
                 return response_text
             else:
                 resp.raise_for_status()
                 data = resp.json()
                 content = data.get("message", {}).get("content", "")
-                self.history.append({"role": "user", "content": message})
-                self.history.append({"role": "assistant", "content": content})
+                self.history.append({"user": message, "ai": content})
                 return content
         
         # API mode routing
