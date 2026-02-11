@@ -4,6 +4,8 @@ import sys
 import shutil
 import os
 import json
+import base64
+import mimetypes
 
 try:
     import pyttsx3
@@ -65,7 +67,20 @@ class EzOllama:
     def get_history(self):
         return self.history
 
-    def _chat_google(self, message):
+    def _encode_image(self, image_path):
+        if not os.path.exists(image_path):
+            raise FileNotFoundError(f"Image file not found: {image_path}")
+        
+        mime_type, _ = mimetypes.guess_type(image_path)
+        if not mime_type:
+            mime_type = "image/jpeg"
+            
+        with open(image_path, "rb") as image_file:
+            encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+            
+        return encoded_string, mime_type
+
+    def _chat_google(self, message, image=None):
         """Handle Google AI Studio (Gemini) API calls"""
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent?key={self.api_key}"
         
@@ -75,7 +90,17 @@ class EzOllama:
             contents.append({"role": "user", "parts": [{"text": turn["user"]}]})
             if "ai" in turn:
                 contents.append({"role": "model", "parts": [{"text": turn["ai"]}]})
-        contents.append({"role": "user", "parts": [{"text": message}]})
+        
+        user_parts = [{"text": message}]
+        if image:
+            b64_img, mime = self._encode_image(image)
+            user_parts.append({
+                "inline_data": {
+                    "mime_type": mime,
+                    "data": b64_img
+                }
+            })
+        contents.append({"role": "user", "parts": user_parts})
         
         payload = {"contents": contents}
         
@@ -91,7 +116,7 @@ class EzOllama:
         self.history.append({"user": message, "ai": content})
         return content
 
-    def _chat_openai(self, message):
+    def _chat_openai(self, message, image=None):
         """Handle OpenAI API calls"""
         url = "https://api.openai.com/v1/chat/completions"
         headers = {
@@ -106,7 +131,19 @@ class EzOllama:
             messages.append({"role": "user", "content": turn["user"]})
             if "ai" in turn:
                 messages.append({"role": "assistant", "content": turn["ai"]})
-        messages.append({"role": "user", "content": message})
+        
+        if image:
+            b64_img, mime = self._encode_image(image)
+            content = [
+                {"type": "text", "text": message},
+                {
+                    "type": "image_url",
+                    "image_url": {"url": f"data:{mime};base64,{b64_img}"}
+                }
+            ]
+            messages.append({"role": "user", "content": content})
+        else:
+            messages.append({"role": "user", "content": message})
         
         payload = {
             "model": self.model,
@@ -121,7 +158,7 @@ class EzOllama:
         self.history.append({"user": message, "ai": content})
         return content
 
-    def _chat_anthropic(self, message):
+    def _chat_anthropic(self, message, image=None):
         """Handle Anthropic (Claude) API calls"""
         url = "https://api.anthropic.com/v1/messages"
         headers = {
@@ -135,7 +172,23 @@ class EzOllama:
             messages.append({"role": "user", "content": turn["user"]})
             if "ai" in turn:
                 messages.append({"role": "assistant", "content": turn["ai"]})
-        messages.append({"role": "user", "content": message})
+        
+        if image:
+            b64_img, mime = self._encode_image(image)
+            content = [
+                {
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": mime,
+                        "data": b64_img
+                    }
+                },
+                {"type": "text", "text": message}
+            ]
+            messages.append({"role": "user", "content": content})
+        else:
+            messages.append({"role": "user", "content": message})
         
         payload = {
             "model": self.model,
@@ -154,7 +207,7 @@ class EzOllama:
         self.history.append({"user": message, "ai": content})
         return content
 
-    def _chat_groq(self, message):
+    def _chat_groq(self, message, image=None):
         """Handle Groq API calls"""
         url = "https://api.groq.com/openai/v1/chat/completions"
         headers = {
@@ -169,7 +222,19 @@ class EzOllama:
             messages.append({"role": "user", "content": turn["user"]})
             if "ai" in turn:
                 messages.append({"role": "assistant", "content": turn["ai"]})
-        messages.append({"role": "user", "content": message})
+        
+        if image:
+            b64_img, mime = self._encode_image(image)
+            content = [
+                {"type": "text", "text": message},
+                {
+                    "type": "image_url",
+                    "image_url": {"url": f"data:{mime};base64,{b64_img}"}
+                }
+            ]
+            messages.append({"role": "user", "content": content})
+        else:
+            messages.append({"role": "user", "content": message})
         
         payload = {
             "model": self.model,
@@ -184,7 +249,7 @@ class EzOllama:
         self.history.append({"user": message, "ai": content})
         return content
 
-    def chat(self, message, stream=False):
+    def chat(self, message, image=None, stream=False):
         if self.mode == "local":
             start_ollama_quietly()
             if not self.model:
@@ -197,7 +262,12 @@ class EzOllama:
                 messages.append({"role": "user", "content": turn["user"]})
                 if "ai" in turn:
                     messages.append({"role": "assistant", "content": turn["ai"]})
-            messages.append({"role": "user", "content": message})
+            
+            current_msg = {"role": "user", "content": message}
+            if image:
+                b64_img, _ = self._encode_image(image)
+                current_msg["images"] = [b64_img]
+            messages.append(current_msg)
 
             payload = {
                 "model": self.model,
@@ -231,13 +301,13 @@ class EzOllama:
             print("Warning: Streaming not yet supported for API modes, using regular chat.")
         
         if self.mode == "google":
-            return self._chat_google(message)
+            return self._chat_google(message, image)
         elif self.mode == "openai":
-            return self._chat_openai(message)
+            return self._chat_openai(message, image)
         elif self.mode == "anthropic":
-            return self._chat_anthropic(message)
+            return self._chat_anthropic(message, image)
         elif self.mode == "groq":
-            return self._chat_groq(message)
+            return self._chat_groq(message, image)
 
     def list_models(self):
         if self.mode != "local":
